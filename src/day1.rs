@@ -28,7 +28,7 @@ pub fn part1(input: &[i64]) -> i64 {
 #[aoc(day1, part2)]
 pub fn part2(input: &[i64]) -> i64 {
     input
-        .into_iter()
+        .iter()
         .combinations(3)
         .fold(0, |acc, v| {
             let i1 = v[0];
