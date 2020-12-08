@@ -1,3 +1,4 @@
+use lazy_static::lazy_static;
 use regex::Regex;
 use itertools::Itertools;
 
@@ -15,13 +16,13 @@ impl Height {
     fn from_str(string: &str) -> Self {
         let re: Regex = Regex::new("in|cm").unwrap();
         if re.is_match(string) {
-            let scale_loc = string.len() - 2;
-            let scale = match &string[scale_loc..] {
+            let scale_pos = string.len() - 2;
+            let scale = match &string[scale_pos..] {
                 "cm" => Scale::Cm,
                 "in" => Scale::In,
                 _ => panic!("Unknown scale")
             };
-            let number = &string[..scale_loc];
+            let number = &string[..scale_pos];
             Self {
                 number: number.parse().unwrap(),
                 scale: Some(scale)
@@ -52,6 +53,17 @@ pub struct Passport {
     hair_color: Option<String>,
     eye_color: Option<String>,
     passport_id: Option<String>
+}
+
+lazy_static! {
+    static ref RE_HCL: Regex = Regex
+        ::new(r"^#[0-9a-f]{6}$").unwrap();
+    static ref RE_ECL: Regex = Regex
+        ::new(r"^(amb|blu|brn|gry|grn|hzl|oth)$")
+        .unwrap();
+    static ref RE_PID: Regex = Regex
+        ::new(r"^[0-9]{9}$")
+        .unwrap();
 }
 
 impl Passport {
@@ -114,19 +126,13 @@ impl Passport {
             self.eye_color,
             self.passport_id
         ) {
-            let re_hcl: Regex = Regex::new(r"^#[0-9a-f]{6}$").unwrap();
-            let re_ecl: Regex = Regex::new(r"^(amb|blu|brn|gry|grn|hzl|oth)$")
-                .unwrap();
-            let re_pid: Regex = Regex::new(r"^[0-9]{9}$")
-                .unwrap();
-
             (birth_year >= 1920 && birth_year <= 2002) &&
             (issue_year >= 2010 && issue_year <= 2020) &&
             (expiration_year >= 2020 && expiration_year <= 2030) &&
             height.is_valid() &&
-            re_hcl.is_match(&hair_color) &&
-            re_ecl.is_match(&eye_color) &&
-            re_pid.is_match(&passport_id)
+            RE_HCL.is_match(&hair_color) &&
+            RE_ECL.is_match(&eye_color) &&
+            RE_PID.is_match(&passport_id)
         } else {
             false
         }
